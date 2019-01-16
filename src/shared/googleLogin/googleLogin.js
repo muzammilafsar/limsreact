@@ -24,8 +24,11 @@ class GoogleLogin extends Component {
       }
     
       onLoginSuccess = (user) => {
-        //   this.props.setUserData(user);
+          this.props.setUserData(user.profileObj);
           this.props.setAuthenticated();
+          // this.props.setUserData(user);
+          localStorage.setItem('userdata', JSON.stringify(user.profileObj));
+          console.log(user.profileObj)
       }
     
       onLoginFailure=(err) => {
@@ -58,7 +61,8 @@ const mapStateToProps = (state) => {
 }
 const mapDispatchToProps = (dispatch) => {
   return {
-      setAuthenticated: () => dispatch(SET_AUTHENTICATED())
+      setAuthenticated: () => dispatch(SET_AUTHENTICATED()),
+      setUserData: (data) => dispatch(SET_USER_DATA(data))
   };
 }
 export default connect(mapStateToProps, mapDispatchToProps)(GoogleLogin);

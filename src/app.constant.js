@@ -7,9 +7,12 @@ export const serviceUrl = {
         updatebook: '/updatebook',
         adminlogin: '/adminlogin',
         allBooks: '/allbooks',
-        allborrowedbooks: '/getallborrowedbooks'
+        allborrowedbooks: '/getallborrowedbooks',
+        adminlogin: '/adminlogin'
     },
     user: {
-
+        borrow: '/borrowbook',
+        borrowedBooks: '/userbooks',
+        returnBook: '/returnbook'
     }
 }

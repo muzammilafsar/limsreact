@@ -8,14 +8,17 @@ import { UiLoader } from '../../store/actions/ui.action';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
 import CardMedia from '@material-ui/core/CardMedia';
-import { Button } from '@material-ui/core';
-
+import { Button, } from '@material-ui/core';
+import DialogComponent  from '../../shared/dialogComponent/dialogComponent';
 class BookDetail extends React.Component {
 constructor(props) {
     super(props);
     this.state = {
         fetchError: false,
-        book: {}
+        book: {},
+        title: '',
+        content: '',
+        open: false
     };
     }
     componentWillMount() {
@@ -45,11 +48,39 @@ constructor(props) {
         this.props.stopLoading();
     }) 
   }
+  closeDialog = () => {
+    this.setState({open: false});
+  }
+  borrow = (id) => {
+    console.log(id);
+    this.props.startLoading();
+    const body = {
+      email : this.props.userData.email,
+      bookid : id
+    };
+    console.log(this.props.loader);
+    axios.post(`${serviceUrl.url}${serviceUrl.user.borrow}`, body).then(val => val.data).then(val => {
+      this.setState({open: true});
+      if(val.status === 200) {
+        this.setState({fetchError: false });
+        this.setState({title: 'Success', content: 'Book Borrowed Successfully'.toUpperCase()});
+      } else {
+        this.setState({fetchError: true});
+        this.setState({title: 'Error', content: val.message.toUpperCase()});
+        
+      }
+      this.props.stopLoading()
+    }).catch(err => {
+      this.setState({fetchError: true});
+      this.props.stopLoading();
+  }) 
+  }
   render() {
     const { classes } = this.props; 
 
     return (
         <Grid container justify="center" style={{paddingTop: 20}}>
+        <DialogComponent withAction={false} action={()=> {}} title={this.state.title} content={this.state.content} handleClose={() => {this.closeDialog()}} open={this.state.open}></DialogComponent>
             <Grid item md={3} sm={12} xs={12}>
             <Card>
             <CardMedia style={{height: 600}}
@@ -74,7 +105,7 @@ constructor(props) {
                 </Typography>
                 </Grid>
                 <Grid item>
-                    <Button variant="contained" size="large" color="primary" disabled={this.props.loader} >Borrow</Button>
+                    <Button variant="contained" size="large" color="primary" onClick={()=> this.borrow(this.state.book._id)}  disabled={this.props.loader} >Borrow</Button>
                 </Grid>
             </Grid>
         </Grid>
@@ -83,7 +114,9 @@ constructor(props) {
 }
 const mapStateToProps = state => {
     return {
-      loader: state.UiReducer.loader
+      loader: state.UiReducer.loader,
+      userData: state.authReducer.userData,
+      loginStatus: state.authReducer.isAuthenticated
     };
   };
   const mapDispatchToProps = dispatch => {

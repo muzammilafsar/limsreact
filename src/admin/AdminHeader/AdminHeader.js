@@ -13,8 +13,9 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { UiLoader } from '../../store/actions/ui.action';
+import { SET_ISADMIN, SET_AUTHENTICATED, SET_USER_DATA } from '../../store/actions/auth.action';
 import { connect} from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 const styles = theme => ({
   root: {
     width: '100%',
@@ -108,7 +109,12 @@ class AdminHeader extends React.Component {
   handleMobileMenuClose = () => {
     this.setState({ mobileMoreAnchorEl: null });
   };
-
+  logout = () => {
+    localStorage.clear();
+    this.props.setUnAuthenticated();
+    this.props.setAdmin({});
+    this.props.history.push('/');
+  }
   render() {
     const { anchorEl, mobileMoreAnchorEl } = this.state;
     const { classes } = this.props;
@@ -159,7 +165,9 @@ class AdminHeader extends React.Component {
 
             <div className={classes.grow} />
             <div className={classes.sectionDesktop}>
-            
+            <Typography className={classes.title} variant="h6" color="inherit" noWrap onClick={this.logout} style={{pointer: 'click'}}>
+                Logout
+            </Typography>
             <Link to="/admin" style={{ textDecoration: 'none', color: 'white' }}>
             <Typography className={classes.title} variant="h6" color="inherit" noWrap>
                 Home
@@ -209,8 +217,11 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
   return {
     startLoading : () => dispatch(UiLoader(true)),
-    stopLoading : () => dispatch(UiLoader(false))
+    stopLoading : () => dispatch(UiLoader(false)),
+    setUnAuthenticated: ()=> {dispatch(SET_AUTHENTICATED())},
+    setAdmin: (data) => {dispatch(SET_ISADMIN(data))
+    }
   };
 };
 
-export default  connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(AdminHeader));
+export default  connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(withRouter(AdminHeader)));

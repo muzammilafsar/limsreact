@@ -9,10 +9,11 @@ import MoreIcon from '@material-ui/icons/MoreVert';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { UiLoader } from '../../store/actions/ui.action';
 import { connect} from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import GoogleLogin from '../../shared/googleLogin/googleLogin';
 import { GoogleLogout } from 'react-google-login';
-import { SET_UNAUTHENTICATED, SET_USER_DATA } from '../../store/actions/auth.action';
+import { SET_UNAUTHENTICATED, SET_USER_DATA, SET_AUTHENTICATED, SET_ISADMIN } from '../../store/actions/auth.action';
+import  AdminLogin  from '../../shared/adminLogin/adminLogin';
 const styles = theme => ({
   root: {
     width: '100%',
@@ -85,11 +86,34 @@ const styles = theme => ({
 });
 
 class Header extends React.Component {
-  state = {
-    anchorEl: null,
-    mobileMoreAnchorEl: null,
-  };
-
+  constructor() {
+    super();
+    this.state = {
+      anchorEl: null,
+      mobileMoreAnchorEl: null,
+      adminModal: false
+    };
+  }
+  openModal() {
+    this.setState({adminModal: true});
+  }
+  componentDidMount() {
+    this.props.admin.subscribe(val => {
+      console.log('working');
+      this.openModal();
+    })
+    console.log('auth working');
+    let userData = localStorage.getItem('userdata');
+    if( userData) {
+      userData = JSON.parse(userData);
+      this.props.setUserData(userData);
+      this.props.setAuthenticated();
+      if(userData && userData.isAdmin && userData.isAdmin === true) {
+        this.props.history.push('/admin');
+        this.props.setAdmin(true);
+      }
+    }
+  }
   handleProfileMenuOpen = event => {
     this.setState({ anchorEl: event.currentTarget });
   };
@@ -107,8 +131,14 @@ class Header extends React.Component {
     this.setState({ mobileMoreAnchorEl: null });
   };
   logout = () => {
+    console.log('logging out'); 
     this.props.setUnauthenticated();
     this.props.unsetUserData();
+    localStorage.clear();
+    this.props.history.push('/');
+  }
+  closeAdminModal = () => {
+    this.setState({adminModal: false});
   }
   render() {
     const { anchorEl, mobileMoreAnchorEl } = this.state;
@@ -149,15 +179,17 @@ class Header extends React.Component {
     
     return (
       <div className={classes.root}>
+      <AdminLogin open={this.state.adminModal} close={this.closeAdminModal}></AdminLogin>
         <AppBar position="static">
           <Toolbar>
             <IconButton onClick={() => {this.props.sideNavSubject.next(true)}} className={classes.menuButton} color="inherit" aria-label="Open drawer">
               <MenuIcon  />
             </IconButton>
-            <Typography className={classes.title} variant="h6" color="inherit" noWrap>
-              Library Admin
+            <Link to="/" style={{ textDecoration: 'none', color: 'white' }}>
+            <Typography className={classes.title} variant="h6" color="inherit" noWrap >
+              React Library
             </Typography>
-
+            </Link>
             <div className={classes.grow} />
             <div className={classes.sectionDesktop}>
             
@@ -166,10 +198,18 @@ class Header extends React.Component {
                 Home
             </Typography>
             </Link>
+            <Link to="/borrowedbooks" style={{ textDecoration: 'none', color: 'white' }}>
+            {(this.props.isAuthenticated)?<Typography className={classes.title} variant="h6" color="inherit" noWrap>
+            Borrowed Books
+            </Typography>:''}
+            </Link>
+            {!this.props.isAuthenticated ? <Typography className={classes.title} variant="h6" color="inherit" noWrap onClick={() => {this.setState({adminModal: true})}}>
+            Admin Login
+            </Typography>: ''}
             {(!this.props.isAuthenticated)? <GoogleLogin></GoogleLogin > :<GoogleLogout
       buttonText="Logout"
       onLogoutSuccess={this.logout}
-      render={(button) => <Button></Button>}
+      render={(button) => <Button onClick={button.onClick}>Logout</Button>}
     >
     </GoogleLogout>}
             </div>
@@ -197,8 +237,11 @@ const mapDispatchToProps = dispatch => {
     startLoading : () => dispatch(UiLoader(true)),
     stopLoading : () => dispatch(UiLoader(false)),
     setUnauthenticated: () => dispatch(SET_UNAUTHENTICATED()),
-    unsetUserData: () => dispatch(SET_USER_DATA({}))
+    setAuthenticated: () => dispatch(SET_AUTHENTICATED()),
+    unsetUserData: () => dispatch(SET_USER_DATA({})),
+    setUserData: (data) => dispatch(SET_USER_DATA(data)),
+    setAdmin: (data) => dispatch(SET_ISADMIN(data))
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Header));
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(withRouter(Header)));

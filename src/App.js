@@ -11,8 +11,10 @@ import { Subject } from 'rxjs';
 import Home from './user/Home/Home';
 import BookDetail from './user/BookDetails/BookDetails';
 import Header from './shared/header/header';
+import UserBorrowedBooks from './user/BorrowedBooks/BorrowedBooks';
 class App extends Component {
   sideNavSubject = new Subject();
+  adminLoginSubject = new Subject();
   render() {
     return (
       <BrowserRouter>
@@ -21,7 +23,7 @@ class App extends Component {
           <Route path="/admin" render={() => {
             return <div>
               <AdminHeader sideNavSubject={this.sideNavSubject}></AdminHeader>
-              <AdminSidenav sideNavSubject={this.sideNavSubject}></AdminSidenav>
+              <AdminSidenav sideNavSubject={this.sideNavSubject} admin={this.adminLoginSubject}></AdminSidenav>
               <Switch>
               <Route exact path="/admin" component={Admin}/>
               <Route exact path="/admin/addBook" component={BookForm}/>
@@ -32,12 +34,12 @@ class App extends Component {
           }}></Route>
           <Route path="/" render={() => {
             return <div>
-              <Header sideNavSubject={this.sideNavSubject}></Header>
-              <AdminSidenav sideNavSubject={this.sideNavSubject}></AdminSidenav>
+              <Header sideNavSubject={this.sideNavSubject} admin={this.adminLoginSubject}></Header>
+              <AdminSidenav sideNavSubject={this.sideNavSubject}admin={this.adminLoginSubject}></AdminSidenav>
               <Switch>
                 <Route exact path="/" component={Home}/>
                 <Route exact path="/book/:id" component={BookDetail}/>
-
+                <Route exact path="/borrowedbooks" component={UserBorrowedBooks}/>
               </Switch>
             </div>
           }}>

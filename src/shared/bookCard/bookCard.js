@@ -42,8 +42,9 @@ function BookCard(props) {
         <Button onClick={ () => {props.details(props.book._id)}} size="small" color="primary">
           Details
         </Button>
-        <Button onClick={ () => {props.borrow(props.book._id)}}  size="small" color="primary">
-          Borrow
+        {props.disable}
+        <Button onClick={ () => {props.borrow(props.book._id)}} disabled={props.loader} size="small" color="primary">
+          Borrow 
         </Button>
       </CardActions>
     </Card>
